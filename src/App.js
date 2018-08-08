@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import styled from "styled-components";
 import * as _ from "lodash";
-import TodoBlock from "./components/TodoBlock";
+import TodoList from "./containers/TodoList";
+import TodoDetail from "./containers/TodoDetail";
 
 class App extends Component {
 	constructor(props) {
@@ -14,7 +14,12 @@ class App extends Component {
 			filter: localStorage.getItem("filter")
 				? localStorage.getItem("filter")
 				: "All",
-			workLists
+			workLists,
+			workDetail: {
+				opened: false,
+				editor: false,
+				workID: "1"
+			}
 		};
 	}
 
@@ -43,7 +48,7 @@ class App extends Component {
 		e.target.value = "";
 	};
 
-	toggleStatusHandler = ({ key }) => {
+	toggleStatusHandler = key => {
 		const value = this.state.workLists[key].taskStatus;
 		let workLists = this.state.workLists;
 		workLists[key].taskStatus =
@@ -77,81 +82,66 @@ class App extends Component {
 		this.setState({ filter: switcher[switchKey] });
 	};
 
+	backToListHandler = () => {
+		this.setState({
+			workDetail: {
+				opened: false,
+				editor: false,
+				workID: ""
+			}
+		});
+	};
+
+	openDetailHandler = workID => {
+		this.setState({
+			workDetail: {
+				opened: true,
+				workID
+			}
+		});
+	};
+
+	toggleEditorHandler = () => {
+		const workDetail = this.state.workDetail;
+		workDetail.editor = !workDetail.editor;
+		this.setState({ workDetail });
+	};
+
+	editWorkDetailHandler = (workID, taskName) => {
+		let workLists = this.state.workLists;
+		workLists[workID].taskName = taskName;
+		this.setState({ workLists });
+	};
+
 	render() {
 		return (
 			<div className="App">
-				{this.state.createInput ? (
-					<InputTodos
-						type="text"
-						placeholder="ระบุสิ่งที่ต้องทำ"
-						innerRef={input => {
-							if (input) input.focus();
+				{this.state.workDetail.opened ? (
+					<TodoDetail
+						editorStatus={this.state.workDetail.editor}
+						backToListHandler={this.backToListHandler}
+						toggleEditorHandler={this.toggleEditorHandler}
+						editWorkDetailHandler={this.editWorkDetailHandler}
+						workLists={{
+							workID: this.state.workDetail.workID,
+							...this.state.workLists[this.state.workDetail.workID]
 						}}
-						onKeyPress={this.keyEnterHandler}
-						onBlur={this.focusOutHandler}
 					/>
 				) : (
-					<div>
-						<TodoBtn onClick={this.toggleCreateInputHandler}>Add Todo</TodoBtn>
-						<TodoBtn onClick={this.toggleFilterHandler}>
-							Filter: {this.state.filter}
-						</TodoBtn>
-						<TodoBtn onClick={this.clearCompletedHandler}>Clear</TodoBtn>
-					</div>
+					<TodoList
+						{...this.state}
+						toggleFilterHandler={this.toggleFilterHandler}
+						keyEnterHandler={this.keyEnterHandler}
+						focusOutHandler={this.focusOutHandler}
+						toggleCreateInputHandler={this.toggleCreateInputHandler}
+						clearCompletedHandler={this.clearCompletedHandler}
+						toggleStatusHandler={this.toggleStatusHandler}
+						openDetailHandler={this.openDetailHandler}
+					/>
 				)}
-				{this.state.workLists.map((item, key) => {
-					if (
-						this.state.filter !== "All" &&
-						item.taskStatus === this.state.filter
-					) {
-						return (
-							<TodoBlock
-								key={key}
-								{...item}
-								toggleStatusHandler={this.toggleStatusHandler.bind(this, {
-									key
-								})}
-							/>
-						);
-					}
-					if (this.state.filter === "All") {
-						return (
-							<TodoBlock
-								key={key}
-								{...item}
-								toggleStatusHandler={this.toggleStatusHandler.bind(this, {
-									key
-								})}
-							/>
-						);
-					}
-					return null;
-				})}
 			</div>
 		);
 	}
 }
-
-const TodoBtn = styled.button`
-	margin: 2px;
-	outline: none;
-	padding: 0.75em;
-	border: 1px solid pink;
-	border-radius: 5px;
-	background: none;
-	cursor: pointer;
-	&:hover {
-		border-color: green;
-	}
-	&:active {
-		background: #ccc;
-	}
-`;
-
-const InputTodos = styled.input`
-	padding: 0.75em;
-	border-radius: 5px;
-	outline: none;
-`;
 
 export default App;
