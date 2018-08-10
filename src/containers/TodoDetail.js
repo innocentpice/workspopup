@@ -1,37 +1,69 @@
 import React from "react";
+import ReactMarkdown from "react-markdown";
 import { TodoBtn, InputTodo } from "../components/styledComponents";
+import "./TodoDetail.css";
 
 const TodoDetail = ({
 	workLists,
 	editorStatus,
 	backToListHandler,
-	editWorkDetailHandler,
-	toggleEditorHandler
+	editTaskNameHandler,
+	editTaskDetailHandler,
+	toggleNameEditorHandler,
+	toggleDetailEditorHandler
 }) => {
+	console.log(workLists, editorStatus);
 	return (
 		<div>
-			<TodoBtn onClick={backToListHandler}>Back to List</TodoBtn>
 			<h1>
-				{editorStatus ? (
+				{editorStatus.taskName ? (
 					<InputTodo
 						defaultValue={workLists.taskName}
-						onBlur={toggleEditorHandler}
+						onBlur={toggleNameEditorHandler}
 						innerRef={input => {
 							if (input) input.focus();
 						}}
 						onKeyPress={e => {
 							if (e.charCode === 13 && e.target.value !== "") {
-								editWorkDetailHandler(workLists.workID, e.target.value);
-								toggleEditorHandler();
+								editTaskNameHandler(workLists.workID, e.target.value);
+								toggleNameEditorHandler();
 							}
 						}}
 					/>
 				) : (
-					<span onDoubleClick={toggleEditorHandler}>
-						{workLists.taskName} :
-						<small> {workLists.taskStatus}</small>
-					</span>
+					<div>
+						<TodoBtn onClick={backToListHandler}>{"<- Back"}</TodoBtn>
+						<span
+							style={{ marginLeft: "1em" }}
+							onDoubleClick={toggleNameEditorHandler}
+						>
+							{workLists.taskName} :<small> {workLists.taskStatus} </small>
+							<TodoBtn onClick={toggleDetailEditorHandler}>
+								{editorStatus.taskDetail ? "Save" : "Edit"}
+							</TodoBtn>
+						</span>
+					</div>
 				)}
+				<div style={{ marginTop: "2em" }}>
+					{editorStatus.taskDetail ? (
+						<textarea
+							style={{ width: "100%" }}
+							rows={5}
+							defaultValue={workLists.detail ? workLists.detail : ""}
+							onKeyPress={e => {
+								console.log(e.which);
+							}}
+							onChange={e =>
+								editTaskDetailHandler(workLists.workID, e.target.value)
+							}
+						/>
+					) : (
+						<ReactMarkdown
+							className="markdown-body"
+							source={workLists.detail ? workLists.detail : ""}
+						/>
+					)}
+				</div>
 			</h1>
 		</div>
 	);

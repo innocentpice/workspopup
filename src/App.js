@@ -9,6 +9,7 @@ class App extends Component {
 		const workLists = localStorage.getItem("workLists")
 			? [...JSON.parse(localStorage.getItem("workLists"))]
 			: [];
+		const editor = { taskName: false, taskDetail: false };
 		this.state = {
 			createInput: false,
 			filter: localStorage.getItem("filter")
@@ -17,8 +18,8 @@ class App extends Component {
 			workLists,
 			workDetail: {
 				opened: false,
-				editor: false,
-				workID: "1"
+				workID: "",
+				editor
 			}
 		};
 	}
@@ -29,7 +30,7 @@ class App extends Component {
 	}
 
 	keyEnterHandler = e => {
-		if (e.charCode === 13) {
+		if (e.charCode === 13 && e.target.value !== "") {
 			this.setState({
 				createInput: false,
 				workLists: [
@@ -83,33 +84,39 @@ class App extends Component {
 	};
 
 	backToListHandler = () => {
-		this.setState({
-			workDetail: {
-				opened: false,
-				editor: false,
-				workID: ""
-			}
-		});
-	};
-
-	openDetailHandler = workID => {
-		this.setState({
-			workDetail: {
-				opened: true,
-				workID
-			}
-		});
-	};
-
-	toggleEditorHandler = () => {
-		const workDetail = this.state.workDetail;
-		workDetail.editor = !workDetail.editor;
+		let workDetail = this.state.workDetail;
+		workDetail.opened = !workDetail.opened;
 		this.setState({ workDetail });
 	};
 
-	editWorkDetailHandler = (workID, taskName) => {
+	openDetailHandler = workID => {
+		let workDetail = this.state.workDetail;
+		workDetail.opened = true;
+		workDetail.workID = workID;
+		this.setState({ workDetail });
+	};
+
+	toggleNameEditorHandler = () => {
+		let workDetail = this.state.workDetail;
+		workDetail.editor.taskName = !workDetail.editor.taskName;
+		this.setState({ workDetail });
+	};
+
+	editTaskNameHandler = (workID, taskName) => {
 		let workLists = this.state.workLists;
 		workLists[workID].taskName = taskName;
+		this.setState({ workLists });
+	};
+
+	toggleDetailEditorHandler = () => {
+		let workDetail = this.state.workDetail;
+		workDetail.editor.taskDetail = !workDetail.editor.taskDetail;
+		this.setState({ workDetail });
+	};
+
+	editTaskDetailHandler = (workID, detail) => {
+		let workLists = this.state.workLists;
+		workLists[workID].detail = detail;
 		this.setState({ workLists });
 	};
 
@@ -120,8 +127,10 @@ class App extends Component {
 					<TodoDetail
 						editorStatus={this.state.workDetail.editor}
 						backToListHandler={this.backToListHandler}
-						toggleEditorHandler={this.toggleEditorHandler}
-						editWorkDetailHandler={this.editWorkDetailHandler}
+						toggleNameEditorHandler={this.toggleNameEditorHandler}
+						toggleDetailEditorHandler={this.toggleDetailEditorHandler}
+						editTaskNameHandler={this.editTaskNameHandler}
+						editTaskDetailHandler={this.editTaskDetailHandler}
 						workLists={{
 							workID: this.state.workDetail.workID,
 							...this.state.workLists[this.state.workDetail.workID]
